@@ -84,6 +84,7 @@ function Header({
 }) {
   const navigate = useNavigate()
   const [searchText, setSearchText] = useState('')
+  const [searchScope, setSearchScope] = useState('all')
 
   function onSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -92,17 +93,38 @@ function Header({
       navigate('/shop')
       return
     }
-    navigate(`/shop?query=${encodeURIComponent(trimmed)}`)
+    const scopeParam = searchScope === 'all' ? '' : `&scope=${encodeURIComponent(searchScope)}`
+    navigate(`/shop?query=${encodeURIComponent(trimmed)}${scopeParam}`)
   }
 
   return (
-    <header className="main-header">
-      <div className="brand-line">
+    <header className="main-header marketplace-header">
+      <div className="top-utility-bar">
+        <div className="utility-inner">
+          <p>Free shipping over $60 | Verified reviews | Child-safe premium products</p>
+          <div className="utility-mini-links">
+            <NavLink to="/faq">Help Center</NavLink>
+            <NavLink to="/contact">Track Orders</NavLink>
+            <NavLink to="/services">Salon Deals</NavLink>
+          </div>
+        </div>
+      </div>
+      <div className="brand-line market-brand-line">
         <Link to="/" className="brand-link">
           <span className="brand-title">KeonaKay Kids</span>
-          <span className="brand-tag">Luxury Kids Salon & Boutique</span>
+          <span className="brand-tag">Marketplace + Luxury Salon Boutique</span>
         </Link>
-        <form className="site-search" onSubmit={onSearchSubmit}>
+        <form className="site-search market-search" onSubmit={onSearchSubmit}>
+          <select
+            aria-label="Search category scope"
+            value={searchScope}
+            onChange={(event) => setSearchScope(event.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="products">Products</option>
+            <option value="services">Services</option>
+            <option value="brands">Brands</option>
+          </select>
           <input
             type="search"
             placeholder="Search products, services, brands..."
@@ -111,8 +133,9 @@ function Header({
           />
           <button type="submit">Search</button>
         </form>
-        <div className="utility-links">
+        <div className="utility-links market-utilities">
           <NavLink to="/account">Account</NavLink>
+          <NavLink to="/services">Services</NavLink>
           <NavLink to="/shop?wishlist=true">Wishlist ({wishlistCount})</NavLink>
           <NavLink to="/cart">Cart ({cartCount})</NavLink>
         </div>
@@ -136,43 +159,173 @@ function Header({
 function HomePage() {
   const { addToCart, toggleWishlist, wishlist } = useStore()
   const [newsletterStatus, setNewsletterStatus] = useState('idle')
-  const featuredCategories = categories.slice(0, 8)
-  const featuredProducts = products.slice(0, 8)
-  const featuredServices = services.slice(0, 3)
+  const featuredCategories = categories.slice(0, 10)
+  const flashDeals = products.slice(0, 4)
+  const recommendedProducts = products.slice(2, 12)
+  const featuredServices = services.slice(0, 4)
+  const wholesaleHighlights = [
+    'MOQ-friendly salon bundles and starter kits',
+    'Global supplier-style pricing tiers for bulk orders',
+    'Private label consultation for premium gift sets',
+    'Dedicated support for schools and kids events',
+  ]
 
   return (
-    <div className="page home-page">
-      <section className="hero-section">
-        <video autoPlay loop muted playsInline className="hero-video" poster={galleryImages[0]}>
-          <source src={heroVideoUrl} type="video/mp4" />
-        </video>
-        <div className="hero-overlay">
-          <p className="eyebrow">Premium Care for Growing Curls</p>
-          <h1>Luxury salon moments and trusted products for every child.</h1>
-          <p>
-            Discover refined hair care essentials and elegant service booking in one polished
-            experience.
-          </p>
-          <div className="hero-actions">
-            <Link to="/shop" className="btn btn-primary">
-              Shop Products
+    <div className="page home-page marketplace-home">
+      <section className="market-hero-grid">
+        <aside className="content-section category-rail">
+          <h2>All categories</h2>
+          <ul>
+            {featuredCategories.map((category) => (
+              <li key={category.slug}>
+                <Link to={`/shop/category/${category.slug}`}>{category.name}</Link>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <div className="market-hero-stack">
+          <section className="hero-section market-hero">
+            <video autoPlay loop muted playsInline className="hero-video" poster={galleryImages[0]}>
+              <source src={heroVideoUrl} type="video/mp4" />
+            </video>
+            <div className="hero-overlay">
+              <p className="eyebrow">KeonaKay Marketplace</p>
+              <h1>Discover trending kids beauty deals and premium salon services.</h1>
+              <p>
+                Marketplace speed inspired by Jumia and Alibaba, elevated with KeonaKay luxury
+                care and trust.
+              </p>
+              <div className="hero-actions">
+                <Link to="/shop" className="btn btn-primary">
+                  Shop Now
+                </Link>
+                <Link to="/book" className="btn btn-secondary">
+                  Book Appointment
+                </Link>
+              </div>
+            </div>
+          </section>
+          <div className="market-mini-banners">
+            <article className="content-section mini-banner">
+              <p className="eyebrow">Mega Deal</p>
+              <h3>Up to 30% off wash-day essentials</h3>
+              <Link to="/shop?query=shampoo" className="text-link">
+                Grab Offer
+              </Link>
+            </article>
+            <article className="content-section mini-banner">
+              <p className="eyebrow">New Supplier Drop</p>
+              <h3>Fresh satin accessories and styling kits</h3>
+              <Link to="/shop?query=satin" className="text-link">
+                Shop New Arrivals
+              </Link>
+            </article>
+          </div>
+        </div>
+
+        <aside className="market-side-cards">
+          <article className="content-section quick-panel">
+            <h3>Need help fast?</h3>
+            <ul className="meta-list">
+              <li>Live beauty advisor support</li>
+              <li>Same-day booking slots</li>
+              <li>Delivery tracking updates</li>
+            </ul>
+            <Link to="/contact" className="btn btn-secondary">
+              Contact Support
             </Link>
-            <Link to="/book" className="btn btn-secondary">
-              Book a Service
+          </article>
+          <article className="content-section quick-panel side-highlight">
+            <p className="eyebrow">Wholesale Hub</p>
+            <h3>Bulk orders for salons, schools, and events</h3>
+            <p>Source kits and product bundles with tiered pricing.</p>
+            <Link to="/contact" className="btn btn-primary">
+              Request Quote
+            </Link>
+          </article>
+        </aside>
+      </section>
+
+      <section className="content-section flash-sale-section">
+        <div className="section-title-row">
+          <h2>Flash Sale</h2>
+          <p className="deal-countdown">Ends in 05h : 14m : 29s</p>
+        </div>
+        <div className="flash-deal-grid">
+          {flashDeals.map((product) => (
+            <article key={product.id} className="flash-deal-card">
+              <img src={product.images[0]} alt={product.name} />
+              <div className="card-body">
+                <h3>{product.name}</h3>
+                <p className="price-row">
+                  <strong>{formatMoney(product.price)}</strong>
+                  <span className="old-price">{formatMoney(product.price + 10)}</span>
+                </p>
+                <button type="button" className="btn btn-primary" onClick={() => addToCart(product.id)}>
+                  Add Deal
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-section section-soft">
+        <div className="section-title-row">
+          <h2>Recommended for you</h2>
+          <Link to="/shop" className="text-link">
+            View all marketplace products
+          </Link>
+        </div>
+        <div className="card-grid product-grid dense-product-grid">
+          {recommendedProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              inWishlist={wishlist.includes(product.id)}
+              onAddToCart={() => addToCart(product.id)}
+              onToggleWishlist={() => toggleWishlist(product.id)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="content-section wholesale-market-section">
+        <div className="wholesale-copy">
+          <p className="eyebrow">Alibaba-Inspired B2B Sourcing</p>
+          <h2>Wholesale and supplier-ready ordering for premium kids hair care.</h2>
+          <p>
+            Source gift bundles, starter kits, and salon inventory in larger quantities with
+            quality assurance and logistics support.
+          </p>
+          <div className="card-actions">
+            <Link to="/contact" className="btn btn-primary">
+              Request Bulk Quote
+            </Link>
+            <Link to="/admin" className="btn btn-secondary">
+              View Seller Dashboard
             </Link>
           </div>
+        </div>
+        <div className="wholesale-grid">
+          {wholesaleHighlights.map((item) => (
+            <article key={item} className="wholesale-item">
+              <p>{item}</p>
+            </article>
+          ))}
         </div>
       </section>
 
       <section className="content-section">
         <div className="section-title-row">
-          <h2>Featured Categories</h2>
+          <h2>Featured categories</h2>
           <Link to="/shop" className="text-link">
-            Explore all products
+            Browse full catalog
           </Link>
         </div>
         <div className="card-grid category-grid">
-          {featuredCategories.map((category) => (
+          {featuredCategories.slice(0, 8).map((category) => (
             <article key={category.slug} className="card category-card">
               <img src={category.image} alt={category.name} />
               <div className="card-body">
@@ -183,26 +336,6 @@ function HomePage() {
                 </Link>
               </div>
             </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-section section-soft">
-        <div className="section-title-row">
-          <h2>Featured Products</h2>
-          <Link to="/shop" className="text-link">
-            View full collection
-          </Link>
-        </div>
-        <div className="card-grid product-grid">
-          {featuredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              inWishlist={wishlist.includes(product.id)}
-              onAddToCart={() => addToCart(product.id)}
-              onToggleWishlist={() => toggleWishlist(product.id)}
-            />
           ))}
         </div>
       </section>
@@ -424,18 +557,19 @@ function ShopPage() {
   ])
 
   return (
-    <div className="page">
+    <div className="page shop-market-page">
       <section className="content-section section-banner">
         <p className="eyebrow">E-Commerce Storefront</p>
-        <h1>Shop premium kids hair and salon essentials</h1>
+        <h1>Marketplace shopping: products, deals, and supplier-style discovery</h1>
         <p>
-          Search by product, brand, category, price range, rating, and best-seller status to find
-          the right items quickly.
+          Jumia-style speed and Alibaba-style catalog breadth, tailored for KeonaKay premium kids
+          beauty and salon essentials.
         </p>
       </section>
 
-      <section className="content-section filter-panel">
-        <div className="filter-grid">
+      <section className="shop-market-layout">
+        <aside className="content-section market-filter-sidebar">
+          <h2>Filter by</h2>
           <label>
             Search
             <input
@@ -457,17 +591,6 @@ function ShopPage() {
                   {category.name}
                 </option>
               ))}
-            </select>
-          </label>
-          <label>
-            Sort by
-            <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-              <option value="featured">Featured</option>
-              <option value="popular">Popular</option>
-              <option value="newest">Newest</option>
-              <option value="price-asc">Price low to high</option>
-              <option value="price-desc">Price high to low</option>
-              <option value="rating">Highest rated</option>
             </select>
           </label>
           <label>
@@ -505,30 +628,72 @@ function ShopPage() {
             />
             Best sellers only
           </label>
-        </div>
-      </section>
 
-      <section className="content-section">
-        <div className="section-title-row">
-          <h2>{showWishlistOnly ? 'Saved favorites' : 'Product listing'}</h2>
-          <p>{filteredProducts.length} items</p>
-        </div>
-        <div className="card-grid product-grid">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              inWishlist={wishlist.includes(product.id)}
-              onAddToCart={() => addToCart(product.id)}
-              onToggleWishlist={() => toggleWishlist(product.id)}
-            />
-          ))}
-        </div>
-        {filteredProducts.length === 0 ? (
-          <div className="empty-state">
-            <p>No products match these filters yet. Try expanding your search range.</p>
+          <div className="sidebar-categories">
+            <h3>Quick categories</h3>
+            <div className="sidebar-chip-grid">
+              {categories.slice(0, 8).map((category) => (
+                <button
+                  key={category.slug}
+                  type="button"
+                  className={selectedCategory === category.slug ? 'chip active' : 'chip'}
+                  onClick={() =>
+                    setSelectedCategory((current) =>
+                      current === category.slug ? 'all' : category.slug,
+                    )
+                  }
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
-        ) : null}
+        </aside>
+
+        <div className="shop-main-content">
+          <section className="content-section filter-panel shop-toolbar-panel">
+            <div className="shop-toolbar">
+              <p>{showWishlistOnly ? 'Saved favorites' : 'Product listing'}</p>
+              <p>{filteredProducts.length} items</p>
+              <label>
+                Sort by
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                  <option value="featured">Featured</option>
+                  <option value="popular">Popular</option>
+                  <option value="newest">Newest</option>
+                  <option value="price-asc">Price low to high</option>
+                  <option value="price-desc">Price high to low</option>
+                  <option value="rating">Highest rated</option>
+                </select>
+              </label>
+            </div>
+            <div className="chip-row">
+              <span className="chip static-chip">Trusted sellers</span>
+              <span className="chip static-chip">Fast shipping</span>
+              <span className="chip static-chip">Secure payment</span>
+              <span className="chip static-chip">Salon approved</span>
+            </div>
+          </section>
+
+          <section className="content-section">
+            <div className="card-grid product-grid dense-product-grid">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  inWishlist={wishlist.includes(product.id)}
+                  onAddToCart={() => addToCart(product.id)}
+                  onToggleWishlist={() => toggleWishlist(product.id)}
+                />
+              ))}
+            </div>
+            {filteredProducts.length === 0 ? (
+              <div className="empty-state">
+                <p>No products match these filters yet. Try expanding your search range.</p>
+              </div>
+            ) : null}
+          </section>
+        </div>
       </section>
     </div>
   )
